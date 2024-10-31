@@ -3,3 +3,5 @@
 ##10.30.24 - Added branch for Module 1
    -- corrected code for Promise and .then() chain
    -- added error handling
+   -- setup for class assignment
+   -- error handling
