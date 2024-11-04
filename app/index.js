@@ -15,6 +15,6 @@ app.get("/", (req, res) => {
     });
 });
 
-app.use("/api", router);
+app.use("/bands", router);
 
 module.exports = app;

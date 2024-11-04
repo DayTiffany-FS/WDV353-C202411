@@ -6,5 +6,5 @@ const router = require("./app/routes");
 const server = http.createServer(app);
 
 server.listen(process.env.PORT, () => {
-    console.log(`listening on ${process.env.PORT}`);
+    console.log(`Service is up on port ${process.env.PORT}`);
 });
