@@ -1,44 +1,20 @@
 const router = require("express").Router();
+const {
+    getAllBands, 
+    getBandById, 
+    createBand, 
+    updateBand, 
+    deleteBand
+} = require("../controller/bandController");
 
-router.get("/", (req,res) => {
-    res.status(200).json({
-        success: true, 
-        message: `${req.method} - request to Band endpoint`,
-    });
-});
+router.get("/", getAllBands);
 
-router.get("/:id", (req,res) => {
-    const {id} = req.params;
-    res.status(200).json({
-        id,
-        success: true, 
-        message: `${req.method} - request to Band endpoint1`,
-    });
-});
+router.get("/:id", getBandById);
 
-router.post("/", (req,res) => {
-    res.status(200).json({
-        success: true, 
-        message: `${req.method} - request to Band endpoint2`,
-    });
-});
+router.post("/", createBand);
 
-router.put("/:id", (req,res) => {
-    const {id} = req.params;
-    res.status(200).json({
-        id,
-        success: true, 
-        message: `${req.method} - request to Band endpoint3`,
-    });
-});
+router.put("/:id", updateBand);
 
-router.delete("/:id", (req,res) => {
-    const {id} = req.params;
-    res.status(200).json({
-        id,
-        success: true, 
-        message: `${req.method} - request to Band endpoint4`,
-    });
-});
+router.delete("/:id", deleteBand);
 
 module.exports = router;
