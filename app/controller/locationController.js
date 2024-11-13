@@ -1,94 +1,120 @@
-const Locations = require("../models/Locations");
+const Location = require("../models/Locations");
+const Band = require("../models/Band");
+const messages = require("../messages/Messages");
 
 const getAllLocations = async (req,res) => {
     try {
-        const locations = await Locations.find({});
+        const locations = await Location.find({});
+        
         res.status(200).json({
             data: locations,
             success: true, 
-            message: `${req.method} - request to Location endpoint`,
+            message: `Request to get all locations successful`,
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: `${req.method} - failed to hit location endpoint`,
+            message: `Failed to retrieve all locations`,
             error: error.message
         });
     }
 };
 
 const getLocationById = async (req,res) => {
+    const {locationId} = req.params;
+    
     try {
-        const {id} = req.params;
-        const location = await Locations.findById(id);
+        const location = await Location.findById(locationId)
+            .select("-__v")
+            .populate("band");
+
+        console.log(location);
 
         if (!location) {
             return res.status(404).json({
                 success: false,
-                message: `The location with id ${id} was not listed in this directory`,
+                message: messages.noLocation,
             });
         }
 
         res.status(200).json({
             data: location,
             success: true, 
-            message: `${req.method} - request to Location endpoint1`,
+            message: `Location has been found`,
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: `${req.method} unable to determine your desired location`,
+            message: `Error finding location by ID`,
             error: error.message
         })
     }
 };
 
 const createLocation = async (req,res) => {
-    const {location} = req.body;
+    const {city, band} = req.body;
+
     try {
-        const newLocation = await Locations.create(location);
-        console.log("data >>>", newLocation);
-        res.status(200).json({
+        const existingBand = await Band.findById(band);
+        if (!existingBand) {
+            return res.status(404).json({
+                success: false,
+                message: messages.noBand,
+            });
+        }
+        
+        const newLocation = new Location({city, band});
+        await newLocation.save();
+
+        res.status(201).json({
             data: newLocation,
             success: true,
-            message: `${req.method} - request to Location endpoint2`,
+            message: messages.locationCreated,
         });
     } catch (error) {
         if (error.name == "ValidationError") {
-            console.error("Error Validating!", error);
-            res.status(422).json(error);
+            res.status(422).json({
+                success: false,
+                message: "Validation error",
+                error: error.message
+            });
         } else {
-            console.error(error);
-            res.status(500).json(error);
+            res.status(500).json({
+                success: false,
+                message: "Failed to create location",
+                error: error.message,
+            });
         }
-    };
+    }
 };
 
 const updateLocation = async (req,res) => {
-    try {
-        const {id} = req.params;
-        const {city} = req.body;
+    const { locationId } = req.params;
+    const { city } = req.body;
 
-        const updateLocation = await Locations.findByIdAndUpdate(
-            id,
-            {city},
-            {new: true}
+    try {
+        const updatedLocation = await Location.findByIdAndUpdate(
+            locationId,
+            { city },
+            { new: true },
         );
 
-        if (!updateLocation) {
+        if (!updatedLocation) {
             return res.status(404).json({
                 success: false,
-                message: `Location with id ${id} is not listed within this directory`,
+                message: messages.noLocation,
             });
         }
 
         res.status(200).json({
-            data: updateLocation,
+            data: updatedLocation,
             success: true, 
-            message: `${req.method} - request to Location endpoint3`,
+            message: messages.locationUpdated,
         });
     } catch (error) {
-        res.status(400).json({
+        console.error("Explain:", error);
+
+        res.status(500).json({
             success: false,
             message: `Cannot update location information`,
             error: error.message,
@@ -96,29 +122,30 @@ const updateLocation = async (req,res) => {
     }
 };
 
-const deleteLocation = async (req,res) => {
+const deletedLocation = async (req,res) => {
+    const {locationId} = req.params;
+    
     try {
-        const {id} = req.params;
-        const deleteLocation = await Locations.findByIdAndDelete(id);
+        const deletedLocation = await Location.findByIdAndDelete(locationId);
 
-        if (!deleteLocation) {
+        if (!deletedLocation) {
             return res.status(404).json({
                 success: false,
-                message: `Location with id ${id} is not listed in this directory`,
+                message: messages.noLocation,
             });
         }
 
         res.status(200).json({
-            data: location,
+            data: deletedLocation,
             success: true, 
-            message: `${req.method} - request to Location endpoint4`,
+            message: messages.locationDeleted,
         });
     } catch (error) {
         res.status(500).json({
             success: false,
             message: `This location could not be removed`,
             error: error.message,
-        })
+        });
     }
 };
 
@@ -127,5 +154,5 @@ module.exports = {
     getLocationById,
     createLocation,
     updateLocation,
-    deleteLocation
+    deletedLocation
 };

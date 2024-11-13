@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const bandsSchema = new mongoose.Schema({
+const bandSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, "You are required to have a Band Name."],
@@ -9,10 +9,9 @@ const bandsSchema = new mongoose.Schema({
         maxlength: [50, "Your name is too long, oops!"]
     },
     location: {
-        type: String,
-        required: [true, "You are required to list a location for the band."],
-        trim: true,
-        maxlength: [75, "Your city name is too long, oops!"],
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Location',
+        required: true,
     },
     genre: {
         type: String,
@@ -26,4 +25,4 @@ const bandsSchema = new mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model("Bands", bandsSchema);
+module.exports = mongoose.model("Band", bandSchema);

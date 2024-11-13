@@ -1,4 +1,6 @@
-const Bands = require("../models/Bands");
+const Band = require("../models/Band");
+const Locations = require("../models/Locations");
+
 
 const getAllBands = async (req,res) => {
     try {
@@ -43,24 +45,32 @@ const getBandById = async (req,res) => {
 };
 
 const createBand = async (req,res) => {
-    const {band} = req.body;
+    const { name, genre, locationId, minFee } = req.body;
     try {
-        const newBand = await Bands.create(band);
-        console.log("data >>>", newBand);
-        res.status(200).json({
+        const location = await Locations.findById(locationId);
+
+        if (!location) {
+            return res.status(404).json({
+                success: false,
+                message: messages.noLocation,
+            });
+        }
+
+        const newBand = new Bands({name, genre, location: locationId, minFee});
+        await newBand.save();
+
+        res.status(201).json({
             data: newBand,
             success: true,
-            message: `${req.method} - request to Band endpoint2`,
+            message: messages.bandCreated,
         });
     } catch (error) {
-        if (error.name == "ValidationError") {
-            console.error("Error Validating!", error);
-            res.status(422).json(error);
-        } else {
-            console.error(error);
-            res.status(500).json(error);
+            res.status(500).json({
+                success: false,
+                message: "Failed to create band",
+                error: error.message,
+            });
         }
-    }
 };
 
 const updateBand = async (req,res) => {
