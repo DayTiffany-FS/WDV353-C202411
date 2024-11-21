@@ -1,10 +1,11 @@
 const Band = require("../models/Band");
-const Locations = require("../models/Locations");
+const Location = require("../models/Locations");
+const messages = require("../messages/Messages");
 
 
 const getAllBands = async (req,res) => {
     try {
-        const bands = await Bands.find({});
+        const bands = await Band.find({}).populate("location");
         res.status(200).json({
             data: bands,
             success: true, 
@@ -13,7 +14,7 @@ const getAllBands = async (req,res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: `Unable to list locations, find a map`,
+            message: `Unable to list bands, hello darkness my old friend`,
             error: error.message,
         });
     }
@@ -22,7 +23,7 @@ const getAllBands = async (req,res) => {
 const getBandById = async (req,res) => {
     try {
         const {id} = req.params;
-        const bands = await Bands.findById(id);
+        const bands = await Band.findById(id);
 
         if (!bands) {
             return res.status(404).json({
@@ -45,24 +46,26 @@ const getBandById = async (req,res) => {
 };
 
 const createBand = async (req,res) => {
-    const { name, genre, locationId, minFee } = req.body;
+    const { name, locationName, genre, minFee } = req.body;
     try {
-        const location = await Locations.findById(locationId);
+        let location = await Location.findOne({location: locationName});
 
-        if (!location) {
-            return res.status(404).json({
-                success: false,
-                message: messages.noLocation,
-            });
+        if (!location){
+            location = new Location({location: locationName});
+            await location.save();
         }
 
-        const newBand = new Bands({name, genre, location: locationId, minFee});
+        const newBand = new Band({
+            name, 
+            genre, 
+            location: location._id, 
+            minFee});
         await newBand.save();
 
         res.status(201).json({
-            data: newBand,
             success: true,
             message: messages.bandCreated,
+            data: newBand,
         });
     } catch (error) {
             res.status(500).json({
@@ -76,7 +79,7 @@ const createBand = async (req,res) => {
 const updateBand = async (req,res) => {
     try {
         const {id} = req.params;
-        const updateBand = await Bands.findByIdAndUpdate(
+        const updateBand = await Band.findByIdAndUpdate(
             id, 
             req.body, 
             {new: true});
@@ -105,7 +108,7 @@ const updateBand = async (req,res) => {
 const deleteBand = async (req,res) => {
     try {
         const {id} = req.params;
-        const deleteBand = await Bands.findByIdAndDelete(id);
+        const deleteBand = await Band.findByIdAndDelete(id);
 
         if (!deleteBand) {
             return res.status(404).json({

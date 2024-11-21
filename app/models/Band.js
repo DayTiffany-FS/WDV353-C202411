@@ -11,7 +11,7 @@ const bandSchema = new mongoose.Schema({
     location: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Location',
-        required: true,
+        required: true
     },
     genre: {
         type: String,

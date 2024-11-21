@@ -5,6 +5,7 @@ const {
     getAllLocations,
     getLocationById,
     createLocation,
+    updateBandsLocation,
     updateLocation,
     deletedLocation
 } = require("../controller/locationController");
@@ -13,7 +14,7 @@ router.get("/", getAllLocations);
 
 router.get("/:locationId", async (req, res, next) => {
     const locationId = req.params.locationId;
-    console.log("locatoin id:", locationId);
+    console.log("location id:", locationId);
     
     try {
         const location = await Location.findById(locationId)

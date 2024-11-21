@@ -4,7 +4,7 @@ const messages = require("../messages/Messages");
 
 const getAllLocations = async (req,res) => {
     try {
-        const locations = await Location.find({});
+        const locations = await Location.find({}).populate("bands");
         
         res.status(200).json({
             data: locations,
@@ -26,9 +26,7 @@ const getLocationById = async (req,res) => {
     try {
         const location = await Location.findById(locationId)
             .select("-__v")
-            .populate("band");
-
-        console.log(location);
+            .populate("bands");
 
         if (!location) {
             return res.status(404).json({
@@ -47,24 +45,20 @@ const getLocationById = async (req,res) => {
             success: false,
             message: `Error finding location by ID`,
             error: error.message
-        })
+        });
     }
 };
 
 const createLocation = async (req,res) => {
-    const {city, band} = req.body;
+    const {location} = req.body;
 
     try {
-        const existingBand = await Band.findById(band);
-        if (!existingBand) {
-            return res.status(404).json({
-                success: false,
-                message: messages.noBand,
-            });
-        }
-        
-        const newLocation = new Location({city, band});
-        await newLocation.save();
+        const newLocation = new Location({location});
+        const savedLocation = await newLocation.save();
+
+        const locationId = savedLocation._id;
+
+        await updateBandsLocation(locationId, location);
 
         res.status(201).json({
             data: newLocation,
@@ -88,14 +82,31 @@ const createLocation = async (req,res) => {
     }
 };
 
+const updateBandsLocation = async (locationId, locationName) => {
+    try {
+        const result = await Band.updateMany(
+            {location: locationName},
+            {$set: {location: locationId}}
+        );
+
+        if (result.modifiedCount===0){
+            console.log("No bands found to update at specified location");
+            return;
+        }
+        console.log(`Listed bands have had their location updated and linked to newly created location`)
+    } catch (error) {
+        console.error("Could not update with newly created location", error);
+    }
+};
+
 const updateLocation = async (req,res) => {
     const { locationId } = req.params;
-    const { city } = req.body;
+    const { location } = req.body;
 
     try {
         const updatedLocation = await Location.findByIdAndUpdate(
             locationId,
-            { city },
+            { location },
             { new: true },
         );
 
@@ -153,6 +164,7 @@ module.exports = {
     getAllLocations,
     getLocationById,
     createLocation,
+    updateBandsLocation,
     updateLocation,
     deletedLocation
 };

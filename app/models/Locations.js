@@ -1,19 +1,23 @@
 const mongoose = require("mongoose");
 
 const locationSchema = new mongoose.Schema({
-        city: {
+        location: {
             type: String,
             required: true,
             trim: true,
             maxlenght: [75, "You have entered a location too large, please try again."],
-        },
-        band: 
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Band',
-                required: true,
-            },
-    },
-);
+        }
+    });
+
+locationSchema.virtual("bands", {
+    ref: "Band",
+    localField: "_id",
+    foreignField: "location",
+    justOne: false
+});
+
+locationSchema.set('toJSON', {
+    virtuals: true,
+});
 
 module.exports = mongoose.model("Location", locationSchema);
