@@ -5,10 +5,37 @@ const messages = require("../messages/Messages");
 
 const getAllBands = async (req,res) => {
     try {
-        const bands = await Band.find({}).populate("location");
+        const {minFee, genre, sortBy, sortOrder = "asc", page =1, limit = 3} = req.query;
+
+        const query = {};
+        if (minFee) {
+            query.minFee = {$gte: minFee};
+        }
+        if (genre) {
+            query.genre = {$regex: genre, $options: "i"};
+        }
+
+        const skip = (page -1) * limit;
+        const sort = {};
+        if (sortBy) {
+            sort[sortBy] = sortOrder === "desc" ? -1: 1;
+        }
+
+        const bands = await Band.find(query)
+        .populate("location")
+        .select("-__v")
+        .sort(sort)
+        .skip(skip)
+        .limit(Number(limit));
+
+        const totalBands = await Band.countDocuments(query);
+        
         res.status(200).json({
             data: bands,
             success: true, 
+            total: totalBands,
+            pages: Math.ceil(totalBands / limit),
+            currentPage: Number(page),
             message: `${req.method} - request to Band endpoint`,
         });
     } catch (error) {
