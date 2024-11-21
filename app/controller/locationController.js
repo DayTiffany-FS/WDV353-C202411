@@ -4,11 +4,34 @@ const messages = require("../messages/Messages");
 
 const getAllLocations = async (req,res) => {
     try {
-        const locations = await Location.find({}).populate("bands");
+        const {locationName, sortBy, sortOrder = "asc", page =1, limit = 3} = req.query;
+
+        const query = {};
+        if (locationName) {
+            query.location = {$regex: locationName, $options: "i"}; 
+        }
+
+        const skip = (page - 1) * limit;
+        const sort = {};
+        if (sortBy) {
+            sort[sortBy] = sortOrder === "desc" ? -1: 1;
+        }
+
+        const locations = await Location.find(query)
+        .populate("bands")
+        .select("-__v")
+        .sort(sort)
+        .skip(skip)
+        .limit(Number(limit));
+
+        const totalLocations = await Location.countDocuments(query);
         
         res.status(200).json({
             data: locations,
             success: true, 
+            total: totalLocations,
+            pages: Math.ceil(totalLocations / limit),
+            currentPage: Number(page),
             message: `Request to get all locations successful`,
         });
     } catch (error) {
