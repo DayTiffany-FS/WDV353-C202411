@@ -5,30 +5,30 @@ const messages = require("../messages/Messages");
 
 const getAllBands = async (req,res) => {
     try {
-        const {minFee, genre, sortBy, sortOrder = "asc", page =1, limit = 3} = req.query;
+        const {minFee_gt, minFee_lt, genre, sortBy, sortOrder = "asc", page =1, limit = 5, fields} = req.query;
 
-        const query = {};
-        if (minFee) {
-            query.minFee = {$gte: minFee};
+        const filter = {};
+        if (minFee_gt) filter.minFee = {$gt: Number(minFee_gt)};
+        if (minFee_lt) {
+            if (!filter.minFee) filter.minFee = {};
+            filter.minFee.$lt = Number(minFee_lt);
         }
-        if (genre) {
-            query.genre = {$regex: genre, $options: "i"};
-        }
+
+        if (genre) filter.genre = {$regex: genre, $options: "i"};
 
         const skip = (page -1) * limit;
-        const sort = {};
-        if (sortBy) {
-            sort[sortBy] = sortOrder === "desc" ? -1: 1;
-        }
+        const sort = sortBy ? {[sortBy]: sortOrder==="desc" ? -1:1}: {};
 
-        const bands = await Band.find(query)
+        const selectFields = fields ? fields.split(',').join(' ') : '-__v -_id -location';
+
+        const bands = await Band.find(filter)
         .populate("location")
-        .select("-__v")
+        .select(selectFields)
         .sort(sort)
         .skip(skip)
         .limit(Number(limit));
 
-        const totalBands = await Band.countDocuments(query);
+        const totalBands = await Band.countDocuments(filter);
         
         res.status(200).json({
             data: bands,
