@@ -19,7 +19,7 @@ const getAllBands = async (req,res) => {
         const skip = (page -1) * limit;
         const sort = sortBy ? {[sortBy]: sortOrder==="desc" ? -1:1}: {};
 
-        const selectFields = fields ? fields.split(',').join(' ') : '-__v -_id -location';
+        const selectFields = fields ? fields.split(',').join(' ') : '-__v';
 
         const bands = await Band.find(filter)
         .populate("location")
