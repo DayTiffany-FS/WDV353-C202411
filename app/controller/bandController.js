@@ -13,7 +13,7 @@ const getAllBands = async (req,res) => {
             if (!filter.minFee) filter.minFee = {};
             filter.minFee.$lt = Number(minFee_lt);
         }
-
+//
         if (genre) filter.genre = {$regex: genre, $options: "i"};
 
         const skip = (page -1) * limit;
